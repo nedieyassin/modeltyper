@@ -32,8 +32,8 @@ class GenerateCliOutput
     /**
      * Output the command in the CLI.
      *
-     * @param  Collection<int, SplFileInfo>  $models
-     * @param  array<string, string>  $mappings
+     * @param Collection<int, SplFileInfo> $models
+     * @param array<string, string> $mappings
      *
      * @throws \ReflectionException
      */
@@ -51,6 +51,23 @@ class GenerateCliOutput
             $this->output .= 'export {}' . PHP_EOL . 'declare global {' . PHP_EOL . "  export namespace {$namespace} {" . PHP_EOL . PHP_EOL;
             $this->indent = '    ';
         }
+
+
+        $this->output .= 'export enum Collections {' . PHP_EOL;
+        $models->each(function (SplFileInfo $model) use ($modelBuilder) {
+            $modelDetails = $modelBuilder(
+                modelFile: $model,
+                includedModels: Config::get('modeltyper.included_models', []),
+                excludedModels: Config::get('modeltyper.excluded_models', []),
+            );
+            if ($modelDetails === null) {
+                return;
+            }
+            $colName = Str::plural(Str::camel($modelDetails['name']));
+            $this->output .= "  {$colName} = '{$colName}'," . PHP_EOL;
+        });
+        $this->output .= PHP_EOL . '}' . PHP_EOL;
+
 
         $models->each(function (SplFileInfo $model) use ($mappings, $modelBuilder, $colAttrWriter, $relationWriter, $countWriter, $existWriter, $sumWriter, $plurals, $apiResources, $optionalRelations, $noRelations, $noHidden, $noCounts, $optionalCounts, $noExists, $optionalExists, $noSums, $optionalSums, $optionalNullables, $fillables, $fillableSuffix, $useEnums, $useTypes) {
             $entry = '';
@@ -80,13 +97,13 @@ class GenerateCliOutput
 
             $declarationType = $useTypes ? 'type' : 'interface';
             $openBrace = $useTypes ? ' = {' : ' {';
-            $entry .= "{$this->indent}export {$declarationType} {$name}{$openBrace}" . PHP_EOL;
+            $entry .= "{$this->indent}export {$declarationType} I{$name}{$openBrace}" . PHP_EOL;
 
             if ($columns->isNotEmpty()) {
                 $entry .= "{$this->indent}  // columns" . PHP_EOL;
                 $columns->each(function ($att) use (&$entry, $reflectionModel, $colAttrWriter, $noHidden, $optionalNullables, $mappings, $useEnums) {
                     [$line, $enum] = $colAttrWriter(reflectionModel: $reflectionModel, attribute: $att, mappings: $mappings, indent: $this->indent, noHidden: $noHidden, optionalNullables: $optionalNullables, useEnums: $useEnums);
-                    if (! empty($line)) {
+                    if (!empty($line)) {
                         $entry .= $line;
                         if ($enum) {
                             $this->enumReflectors[] = $enum;
@@ -99,7 +116,7 @@ class GenerateCliOutput
                 $entry .= "{$this->indent}  // mutators" . PHP_EOL;
                 $nonColumns->each(function ($att) use (&$entry, $reflectionModel, $colAttrWriter, $noHidden, $optionalNullables, $mappings, $useEnums) {
                     [$line, $enum] = $colAttrWriter(reflectionModel: $reflectionModel, attribute: $att, mappings: $mappings, indent: $this->indent, noHidden: $noHidden, optionalNullables: $optionalNullables, useEnums: $useEnums);
-                    if (! empty($line)) {
+                    if (!empty($line)) {
                         $entry .= $line;
                         if ($enum) {
                             $this->enumReflectors[] = $enum;
@@ -116,28 +133,28 @@ class GenerateCliOutput
                 });
             }
 
-            if ($relations->isNotEmpty() && ! $noRelations) {
+            if ($relations->isNotEmpty() && !$noRelations) {
                 $entry .= "{$this->indent}  // relations" . PHP_EOL;
                 $relations->each(function ($rel) use (&$entry, $relationWriter, $optionalRelations, $plurals) {
                     $entry .= $relationWriter(relation: $rel, indent: $this->indent, optionalRelation: $optionalRelations, plurals: $plurals);
                 });
             }
 
-            if ($relations->isNotEmpty() && ! $noCounts) {
+            if ($relations->isNotEmpty() && !$noCounts) {
                 $entry .= "{$this->indent}  // counts" . PHP_EOL;
                 $relations->each(function ($rel) use (&$entry, $countWriter, $optionalCounts) {
                     $entry .= $countWriter(relation: $rel, indent: $this->indent, optionalCounts: $optionalCounts);
                 });
             }
 
-            if ($relations->isNotEmpty() && ! $noExists) {
+            if ($relations->isNotEmpty() && !$noExists) {
                 $entry .= "{$this->indent}  // exists" . PHP_EOL;
                 $relations->each(function ($rel) use (&$entry, $existWriter, $optionalExists) {
                     $entry .= $existWriter(relation: $rel, indent: $this->indent, optionalExists: $optionalExists);
                 });
             }
 
-            if ($sums->isNotEmpty() && ! $noSums) {
+            if ($sums->isNotEmpty() && !$noSums) {
                 $entry .= "{$this->indent}  // sums" . PHP_EOL;
                 $sums->each(function ($sum) use (&$entry, $sumWriter, $optionalSums) {
                     $entry .= $sumWriter(sum: $sum, indent: $this->indent, optionalSums: $optionalSums);
@@ -170,7 +187,7 @@ class GenerateCliOutput
 
             if ($fillables) {
                 $fillableAttributes = $reflectionModel->newInstanceWithoutConstructor()->getFillable();
-                $fillablesUnion = implode(' | ', array_map(fn ($fillableAttribute) => "'$fillableAttribute'", $fillableAttributes));
+                $fillablesUnion = implode(' | ', array_map(fn($fillableAttribute) => "'$fillableAttribute'", $fillableAttributes));
                 $entry .= "{$this->indent}export type {$name}{$fillableSuffix} = Pick<$name, $fillablesUnion>" . PHP_EOL;
             }
 
@@ -180,7 +197,7 @@ class GenerateCliOutput
         });
 
         collect($this->enumReflectors)
-            ->unique(fn (ReflectionClass $reflector) => $reflector->getName())
+            ->unique(fn(ReflectionClass $reflector) => $reflector->getName())
             ->each(function (ReflectionClass $reflector) use ($useEnums) {
                 $this->output .= app(WriteEnumConst::class)($reflector, $this->indent, false, $useEnums);
             });

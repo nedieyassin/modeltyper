@@ -60,7 +60,7 @@ class WriteEnumConst
 
             if ($useEnums) {
                 $entry .= "{$indent}}" . PHP_EOL . PHP_EOL;
-                $entry .= "{$indent}export type {$reflection->getShortName()}Enum = `\${{$reflection->getShortName()}}`" . PHP_EOL . PHP_EOL;
+//                $entry .= "{$indent}export type {$reflection->getShortName()}Enum = `\${{$reflection->getShortName()}}`" . PHP_EOL . PHP_EOL;
             } else {
                 $entry .= "{$indent}} as const;" . PHP_EOL . PHP_EOL;
                 $entry .= "{$indent}export type {$reflection->getShortName()} = typeof {$reflection->getShortName()}[keyof typeof {$reflection->getShortName()}]" . PHP_EOL . PHP_EOL;

@@ -108,9 +108,9 @@ class WriteColumnAttribute
             }
         }
 
-        if ($useEnums) {
-            $type = $enumRef && $type ? ($type . 'Enum') : $type;
-        }
+//        if ($useEnums) {
+//            $type = $enumRef && $type ? ($type . 'Enum') : $type;
+//        }
 
         if ($attribute['nullable']) {
             $type .= ' | null';

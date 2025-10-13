@@ -1,3 +1,7 @@
+> [!IMPORTANT]
+> Changed  some logic. might not work as expected.
+
+
 # Model Typer
 
 [![Github actions](https://github.com/fumeapp/modeltyper/actions/workflows/phpstan.yml/badge.svg)](https://packagist.org/packages/fumeapp/modeltyper)
