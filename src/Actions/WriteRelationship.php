@@ -30,6 +30,9 @@ class WriteRelationship
             default => $relatedModel,
         };
 
+        $singular = Str::singular($relatedModel);
+        $relationType = $singular === 'Bu' ? $relatedModel : $singular;
+
         if (in_array($relation['type'], Config::get('modeltyper.custom_relationships.singular', []))) {
             $relationType = Str::singular($relation['type']);
         }
