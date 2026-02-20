@@ -16,6 +16,25 @@ class ModelTyperServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+
+
+        Str::macro('singular', function ($value) {
+            $exceptions = [
+                'buses' => 'bus',
+                'bus' => 'bus',
+                'Bus' => 'Bus',
+                'Buses' => 'Bus',
+            ];
+            
+            return $exceptions[$value] ?? Pluralizer::singular($value);
+        });
+
+        
+
+        
+        
+        
         $this->publishes([
             __DIR__ . '/../config/modeltyper.php' => config_path('modeltyper.php'),
         ], 'config');
